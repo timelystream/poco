@@ -10,7 +10,10 @@ jobs:
       - run: >-
           cd cmake-build &&
           sudo -s
-          CPPUNIT_IGNORE="N7CppUnit10TestCallerI22HTTPSClientSessionTestEE.testProxy"
+          # - testFullPKCS12
+          #   d5e8813dac406dc9d29c03e3da00bde56a1ad3fd ("Merge pull request #26 from ClickHouse-Extras/boringssl")
+          # - testProxy - proxy is unavailable
+          CPPUNIT_IGNORE="N7CppUnit10TestCallerI22HTTPSClientSessionTestEE.testProxy N7CppUnit10TestCallerI19PKCS12ContainerTestEE.testFullPKCS12"
           PWD=`pwd`
           ctest --output-on-failure -E "(DataMySQL)|(DataODBC)|(PostgreSQL)|(MongoDB)"
 
