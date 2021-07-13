@@ -199,7 +199,7 @@ void ResultMetadata::init(MYSQL_STMT* stmt)
 		_row[i].buffer_length = len;
 		_row[i].buffer        = (len > 0) ? (&_buffer[0] + offset) : 0;
 		_row[i].length        = &_lengths[i];
-		_row[i].is_null       = &_isNull[i];
+		_row[i].is_null       = reinterpret_cast<my_bool*>(&_isNull[i]); // workaround to make it work with both MySQL 8 and earlier
 		_row[i].is_unsigned   = (fields[i].flags & UNSIGNED_FLAG) > 0;
 		
 		offset += _row[i].buffer_length;

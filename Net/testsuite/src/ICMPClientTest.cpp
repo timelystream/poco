@@ -56,7 +56,7 @@ void ICMPClientTest::testPing()
 	assert(icmpClient.ping("10.0.2.15", 4) > 0);
 	assert(icmpClient.ping("10.0.2.2", 4) > 0);
 #else
-	assert(icmpClient.ping("www.appinf.com", 4) > 0);
+	assert(icmpClient.ping("one.one.one.one", 4) > 0);
 
 	// warning: may fail depending on the existence of the addresses at test site
 	// if so, adjust accordingly (i.e. specify non-existent or unreachable IP addresses)
@@ -81,7 +81,7 @@ void ICMPClientTest::testBigPing()
 	assert(icmpClient.ping("10.0.2.15", 4) > 0);
 	assert(icmpClient.ping("10.0.2.2", 4) > 0);
 #else
-	assert(icmpClient.ping("www.appinf.com", 4) > 0);
+	assert(icmpClient.ping("one.one.one.one", 4) > 0);
 
 	// warning: may fail depending on the existence of the addresses at test site
 	// if so, adjust accordingly (i.e. specify non-existent or unreachable IP addresses)
