@@ -9,6 +9,7 @@
 *.lo
 *.o
 *.so
+*.so.*
 *.lai
 *.la
 *.a
@@ -45,6 +46,18 @@ CMakeCache.txt
 CPackConfig.cmake
 CPackSourceConfig.cmake
 cmake_*
+**/Poco/PocoConfig.cmake
+**/Poco/PocoConfigVersion.cmake
+build.ninja
+.ninja_deps
+.ninja_log
+CTestTestfile.cmake
+CTestCheckpoint.txt
+CTestCostData.txt
+**/testsuite/rss.xml
+DartConfiguration.tcl
+input
+rules.ninja
 
 # Packages #
 ############
@@ -65,7 +78,7 @@ cmake_*
 *.sqlite
 *.db
 test*.txt
-XML/testsuite/rss.xml
+*.db-journal
 
 # OS generated files #
 ######################
