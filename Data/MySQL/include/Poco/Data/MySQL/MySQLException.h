@@ -19,12 +19,9 @@
 
 #include "Poco/Data/MySQL/MySQL.h"
 #include "Poco/Data/DataException.h"
+#include <mysql/mysql.h>
 #include <typeinfo>
 #include <string>
-
-
-typedef struct st_mysql MYSQL;
-typedef struct st_mysql_stmt MYSQL_STMT;
 
 
 namespace Poco {

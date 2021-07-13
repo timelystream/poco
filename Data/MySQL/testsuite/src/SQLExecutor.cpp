@@ -29,7 +29,7 @@
 #include <Winsock2.h>
 #endif 
 
-#include <mysql.h>
+#include <mysql/mysql.h>
 #include <iostream>
 #include <limits>
 
