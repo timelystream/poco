@@ -89,6 +89,20 @@ void SocketTest::testPoll()
 }
 
 
+void SocketTest::testPollStress()
+{
+	EchoServer echoServer;
+	StreamSocket ss;
+	ss.connect(SocketAddress("127.0.0.1", echoServer.port()));
+	Stopwatch sw;
+	for (size_t i = 0; i < 1'000'000; ++i)
+	{
+		sw.restart();
+		assert (ss.poll(1, Socket::SELECT_WRITE));
+	}
+}
+
+
 void SocketTest::testAvailable()
 {
 	EchoServer echoServer;
@@ -560,6 +574,7 @@ CppUnit::Test* SocketTest::suite()
 
 	CppUnit_addTest(pSuite, SocketTest, testEcho);
 	CppUnit_addTest(pSuite, SocketTest, testPoll);
+	CppUnit_addTest(pSuite, SocketTest, testPollStress);
 	CppUnit_addTest(pSuite, SocketTest, testAvailable);
 	CppUnit_addTest(pSuite, SocketTest, testFIFOBuffer);
 	CppUnit_addTest(pSuite, SocketTest, testConnect);
