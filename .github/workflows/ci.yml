@@ -22,6 +22,8 @@ jobs:
           -DENABLE_TESTS=ON
           -DPOCO_UNBUNDLED=ON
           -DPOCO_UNBUNDLED_EXPAT=OFF
+          -DPOCO_UNBUNDLED_PCRE=OFF
+          -DPOCO_UNBUNDLED_SQLITE=OFF
           &&
           cmake
           --build cmake-build
@@ -56,6 +58,8 @@ jobs:
           -DENABLE_TESTS=ON
           -DPOCO_UNBUNDLED=ON
           -DPOCO_UNBUNDLED_EXPAT=OFF
+          -DPOCO_UNBUNDLED_PCRE=OFF
+          -DPOCO_UNBUNDLED_SQLITE=OFF
           &&
           cmake
           --build cmake-build
