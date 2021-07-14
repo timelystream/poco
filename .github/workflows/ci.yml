@@ -5,8 +5,27 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt update && sudo apt install cmake ninja-build libssl-dev unixodbc-dev libmysqlclient-dev redis-server
-      - run: cmake -H. -Bcmake-build -GNinja -DENABLE_PDF=OFF -DENABLE_TESTS=ON -DPOCO_UNBUNDLED=ON -DPOCO_UNBUNDLED_EXPAT=OFF && cmake --build cmake-build --target all
+      - run:
+          sudo apt update &&
+          sudo apt install
+            cmake
+            ninja-build
+            libssl-dev
+            unixodbc-dev
+            libmysqlclient-dev
+            redis-server
+      - run:
+          cmake -H.
+          -Bcmake-build
+          -GNinja
+          -DENABLE_PDF=OFF
+          -DENABLE_TESTS=ON
+          -DPOCO_UNBUNDLED=ON
+          -DPOCO_UNBUNDLED_EXPAT=OFF
+          &&
+          cmake
+          --build cmake-build
+          --target all
       - run: >-
           cd cmake-build &&
           sudo -s
