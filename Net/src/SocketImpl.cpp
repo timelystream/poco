@@ -24,16 +24,14 @@
 #ifndef POCO_HAVE_FD_POLL
 #define POCO_HAVE_FD_POLL 1
 #endif
-#elif defined(POCO_OS_FAMILY_BSD)
+#elif defined(POCO_OS_FAMILY_UNIX)
 #ifndef POCO_HAVE_FD_POLL
 #define POCO_HAVE_FD_POLL 1
 #endif
 #endif
 
 
-#if defined(POCO_HAVE_FD_EPOLL)
-#include <sys/epoll.h>
-#elif defined(POCO_HAVE_FD_POLL)
+#if defined(POCO_HAVE_FD_POLL)
 #ifndef _WIN32
 #include <poll.h>
 #endif
@@ -454,55 +452,7 @@ bool SocketImpl::pollImpl(Poco::Timespan& remainingTime, int mode)
 	poco_socket_t sockfd = _sockfd;
 	if (sockfd == POCO_INVALID_SOCKET) throw InvalidSocketException();
 
-#if defined(POCO_HAVE_FD_EPOLL)
-
-	int epollfd = epoll_create(1);
-	if (epollfd < 0)
-	{
-		error("Can't create epoll queue");
-	}
-
-	struct epoll_event evin;
-	memset(&evin, 0, sizeof(evin));
-
-	if (mode & SELECT_READ)
-		evin.events |= EPOLLIN;
-	if (mode & SELECT_WRITE)
-		evin.events |= EPOLLOUT;
-	if (mode & SELECT_ERROR)
-		evin.events |= EPOLLERR;
-
-	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &evin) < 0)
-	{
-		::close(epollfd);
-		error("Can't insert socket to epoll queue");
-	}
-
-	int rc;
-	do
-	{
-		struct epoll_event evout;
-		memset(&evout, 0, sizeof(evout));
-
-		Poco::Timestamp start;
-		rc = epoll_wait(epollfd, &evout, 1, remainingTime.totalMilliseconds());
-		if (rc < 0 && lastError() == POCO_EINTR)
-		{
-			Poco::Timestamp end;
-			Poco::Timespan waited = end - start;
-			if (waited < remainingTime)
-				remainingTime -= waited;
-			else
-				remainingTime = 0;
-		}
-	}
-	while (rc < 0 && lastError() == POCO_EINTR);
-
-	::close(epollfd);
-	if (rc < 0) error();
-	return rc > 0; 
-
-#elif defined(POCO_HAVE_FD_POLL)
+#if defined(POCO_HAVE_FD_POLL)
 
 	pollfd pollBuf;
 
@@ -577,7 +527,7 @@ bool SocketImpl::pollImpl(Poco::Timespan& remainingTime, int mode)
 	if (rc < 0) error(errorCode);
 	return rc > 0; 
 
-#endif // POCO_HAVE_FD_EPOLL
+#endif // POCO_HAVE_FD_POLL
 }
 
 bool SocketImpl::poll(const Poco::Timespan& timeout, int mode)

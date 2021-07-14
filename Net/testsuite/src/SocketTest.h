@@ -26,6 +26,7 @@ public:
 
 	void testEcho();
 	void testPoll();
+	void testPollStress();
 	void testAvailable();
 	void testFIFOBuffer();
 	void testConnect();
