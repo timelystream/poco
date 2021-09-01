@@ -49,6 +49,11 @@ public:
 		/// If flush is true, the text will be immediately
 		/// flushed to the file.
 
+	void writeBinary(const char * data, size_t size, bool flush = true);
+		/// Writes the given bytes to the log file.
+		/// If flush is true, the text will be immediately
+		/// flushed to the file.
+
 	UInt64 size() const;
 		/// Returns the current size in bytes of the log file.
 
@@ -66,6 +71,12 @@ public:
 inline void LogFile::write(const std::string& text, bool flush)
 {
 	writeImpl(text, flush);
+}
+
+
+inline void LogFile::writeBinary(const char * data, size_t size, bool flush = true)
+{
+	writeBinaryImpl(data, size, flush);
 }
 
 

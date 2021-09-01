@@ -46,6 +46,12 @@ void LogFileImpl::writeImpl(const std::string& text, bool flush)
 	if (!_str.good()) throw WriteFileException(_path);
 }
 
+void LogFileImpl::writeBinaryImpl(const char * data, size_t size, bool flush)
+{
+	_str.write(data, size);
+	if (flush) _str.flush();
+	if (!_str.good()) throw WriteFileException(_path);
+}
 
 UInt64 LogFileImpl::sizeImpl() const
 {

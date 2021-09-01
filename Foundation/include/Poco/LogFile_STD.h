@@ -35,6 +35,7 @@ public:
 	LogFileImpl(const std::string& path);
 	~LogFileImpl();
 	void writeImpl(const std::string& text, bool flush);
+	void writeBinaryImpl(const char * data, size_t size, bool flush);
 	UInt64 sizeImpl() const;
 	Timestamp creationDateImpl() const;
 	const std::string& pathImpl() const;
