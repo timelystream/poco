@@ -27,7 +27,6 @@ namespace Poco {
 Message::Message(): 
 	_prio(PRIO_FATAL), 
 	_tid(0), 
-	_pid(0),
 	_file(0),
 	_line(0),
 	_pMap(0) 
@@ -41,7 +40,6 @@ Message::Message(const std::string& source, const std::string& text, Priority pr
 	_text(text), 
 	_prio(prio), 
 	_tid(0),
-	_pid(0),
 	_file(0),
 	_line(0),
 	_pMap(0) 
@@ -55,7 +53,6 @@ Message::Message(const std::string& source, const std::string& text, Priority pr
 	_text(text), 
 	_prio(prio), 
 	_tid(0),
-	_pid(0),
 	_file(file),
 	_line(line),
 	_pMap(0) 
@@ -230,6 +227,16 @@ const std::string& Message::get(const std::string& param, const std::string& def
 	}
 
 	return defaultValue;
+}
+
+
+long Message::getPid() const
+{
+#if !defined(POCO_VXWORKS)
+	if (_pid < 0)
+		_pid = Process::id();
+#endif
+	return _pid;
 }
 
 
