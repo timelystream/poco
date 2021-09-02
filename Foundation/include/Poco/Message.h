@@ -195,7 +195,7 @@ private:
 	Timestamp   _time;
 	long        _tid;
 	std::string _thread;
-	long        _pid;
+	mutable long _pid = -1;
 	const char* _file;
 	int         _line;
 	StringMap*  _pMap;
@@ -238,12 +238,6 @@ inline const std::string& Message::getThread() const
 inline long Message::getTid() const
 {
 	return _tid;
-}
-
-
-inline long Message::getPid() const
-{
-	return _pid;
 }
 
 
