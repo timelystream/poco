@@ -20,6 +20,7 @@
 
 #include "Poco/Foundation.h"
 #include "Poco/LogFile.h"
+#include "Poco/CompressedLogFile.h"
 #include "Poco/File.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/NumberFormatter.h"
@@ -42,10 +43,11 @@ public:
 	ArchiveStrategy();
 	virtual ~ArchiveStrategy();
 
-	virtual LogFile* archive(LogFile* pFile) = 0;
+	virtual LogFile* archive(LogFile* pFile, bool compressed = false) = 0;
 		/// Renames the given log file for archiving
 		/// and creates and returns a new log file.
 		/// The given LogFile object is deleted.
+		/// Returns CompressedLogFile if compressed flag is set. 
 
 	void compress(bool flag = true);
 		/// Enables or disables compression of archived files.	
@@ -71,7 +73,7 @@ class Foundation_API ArchiveByNumberStrategy: public ArchiveStrategy
 public:
 	ArchiveByNumberStrategy();
 	~ArchiveByNumberStrategy();
-	LogFile* archive(LogFile* pFile);
+	LogFile* archive(LogFile* pFile, bool compressed = false);
 };
 
 
@@ -89,7 +91,7 @@ public:
 	{
 	}
 	
-	LogFile* archive(LogFile* pFile)
+	LogFile* archive(LogFile* pFile, bool compressed = false)
 		/// Archives the file by appending the current timestamp to the
 		/// file name. If the new file name exists, additionally a monotonic
 		/// increasing number is appended to the log file name.
@@ -103,7 +105,10 @@ public:
 		if (exists(archPath)) archiveByNumber(archPath);
 		else moveFile(path, archPath);
 
-		return new LogFile(path);
+		if (compressed)
+			return new CompressedLogFile(path);
+		else
+			return new LogFile(path);
 	}
 
 private:

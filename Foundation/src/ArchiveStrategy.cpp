@@ -161,7 +161,7 @@ ArchiveByNumberStrategy::~ArchiveByNumberStrategy()
 }
 
 
-LogFile* ArchiveByNumberStrategy::archive(LogFile* pFile)
+LogFile* ArchiveByNumberStrategy::archive(LogFile* pFile, bool compressed)
 {
 	std::string basePath = pFile->path();
 	delete pFile;
@@ -189,7 +189,11 @@ LogFile* ArchiveByNumberStrategy::archive(LogFile* pFile)
 		moveFile(oldPath, newPath);
 		--n;
 	}
-	return new LogFile(basePath);
+
+	if (compressed)
+		return new CompressedLogFile(basePath);
+	else
+		return new LogFile(basePath);
 }
 
 
