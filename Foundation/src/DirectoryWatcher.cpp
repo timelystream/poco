@@ -299,7 +299,7 @@ public:
 		}
 		
 		Poco::Buffer<char> buffer(4096);
-		while (!_stopped)
+		while (!_stopped.load(std::memory_order_relaxed))
 		{
 			fd_set fds;
 			FD_ZERO(&fds);
@@ -366,7 +366,7 @@ public:
 	
 	void stop()
 	{
-		_stopped = true;
+		_stopped.store(true, std::memory_order_relaxed);
 	}
 	
 	bool supportsMoveEvents() const
@@ -376,7 +376,7 @@ public:
 
 private:
 	int _fd;
-	bool _stopped;
+	std::atomic<bool> _stopped;
 };
 
 
@@ -414,7 +414,7 @@ public:
 		ItemInfoMap entries;
 		scan(entries);
 
-		while (!_stopped)
+		while (!_stopped.load(std::memory_order_relaxed))
 		{
 			struct timespec timeout;
 			timeout.tv_sec = 0;
@@ -448,7 +448,7 @@ public:
 
 	void stop()
 	{
-		_stopped = true;
+		_stopped.store(true, std::memory_order_relaxed);
 	}
 
 	bool supportsMoveEvents() const
@@ -459,7 +459,7 @@ public:
 private:
 	int _queueFD;
 	int _dirFD;
-	bool _stopped;
+	std::atomic<bool> _stopped;
 };
 
 
