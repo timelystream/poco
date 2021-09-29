@@ -225,6 +225,7 @@ public:
 	static const std::string PROP_ARCHIVE;
 	static const std::string PROP_TIMES;
 	static const std::string PROP_COMPRESS;
+	static const std::string PROP_STREAMCOMPRESS;
 	static const std::string PROP_PURGEAGE;
 	static const std::string PROP_PURGECOUNT;
 	static const std::string PROP_FLUSH;
@@ -232,9 +233,11 @@ public:
 
 protected:
 	~FileChannel();
+	void setPath(const std::string& path);
 	void setRotation(const std::string& rotation);
 	void setArchive(const std::string& archive);
 	void setCompress(const std::string& compress);
+	void setStreamCompress(const std::string& streamCompress);
 	void setPurgeAge(const std::string& age);
 	void setPurgeCount(const std::string& count);
 	void setFlush(const std::string& flush);
@@ -243,6 +246,8 @@ protected:
 	void unsafeOpen();
 
 private:
+	LogFile * newLogFile();
+	void archiveCorrupted(const std::string& path);
 	bool setNoPurge(const std::string& value);
 	int extractDigit(const std::string& value, std::string::const_iterator* nextToDigit = NULL) const;
 	void setPurgeStrategy(PurgeStrategy* strategy);
@@ -253,6 +258,7 @@ private:
 	std::string      _rotation;
 	std::string      _archive;
 	bool             _compress;
+	bool             _streamCompress;
 	std::string      _purgeAge;
 	std::string      _purgeCount;
 	bool             _flush;

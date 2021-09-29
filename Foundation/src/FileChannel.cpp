@@ -29,19 +29,21 @@
 namespace Poco {
 
 
-const std::string FileChannel::PROP_PATH         = "path";
-const std::string FileChannel::PROP_ROTATION     = "rotation";
-const std::string FileChannel::PROP_ARCHIVE      = "archive";
-const std::string FileChannel::PROP_TIMES        = "times";
-const std::string FileChannel::PROP_COMPRESS     = "compress";
-const std::string FileChannel::PROP_PURGEAGE     = "purgeAge";
-const std::string FileChannel::PROP_PURGECOUNT   = "purgeCount";
-const std::string FileChannel::PROP_FLUSH        = "flush";
-const std::string FileChannel::PROP_ROTATEONOPEN = "rotateOnOpen";
+const std::string FileChannel::PROP_PATH           = "path";
+const std::string FileChannel::PROP_ROTATION       = "rotation";
+const std::string FileChannel::PROP_ARCHIVE        = "archive";
+const std::string FileChannel::PROP_TIMES          = "times";
+const std::string FileChannel::PROP_COMPRESS       = "compress";
+const std::string FileChannel::PROP_STREAMCOMPRESS = "streamCompress";
+const std::string FileChannel::PROP_PURGEAGE       = "purgeAge";
+const std::string FileChannel::PROP_PURGECOUNT     = "purgeCount";
+const std::string FileChannel::PROP_FLUSH          = "flush";
+const std::string FileChannel::PROP_ROTATEONOPEN   = "rotateOnOpen";
 
 FileChannel::FileChannel(): 
 	_times("utc"),
 	_compress(false),
+	_streamCompress(false),
 	_flush(true),
 	_rotateOnOpen(false),
 	_pFile(0),
@@ -56,6 +58,7 @@ FileChannel::FileChannel(const std::string& path):
 	_path(path),
 	_times("utc"),
 	_compress(false),
+	_streamCompress(false),
 	_flush(true),
 	_rotateOnOpen(false),
 	_pFile(0),
@@ -109,12 +112,12 @@ void FileChannel::log(const Message& msg)
 	{
 		try
 		{
-			_pFile = _pArchiveStrategy->archive(_pFile);
+			_pFile = _pArchiveStrategy->archive(_pFile, _streamCompress);
 			purge();
 		}
 		catch (...)
 		{
-			_pFile = new LogFile(_path);
+			_pFile = newLogFile();
 		}
 		// we must call mustRotate() again to give the
 		// RotateByIntervalStrategy a chance to write its timestamp
@@ -158,13 +161,15 @@ void FileChannel::setProperty(const std::string& name, const std::string& value)
 			setArchive(_archive);
 	}
 	else if (name == PROP_PATH)
-		_path = value;
+		setPath(value);
 	else if (name == PROP_ROTATION)
 		setRotation(value);
 	else if (name == PROP_ARCHIVE)
 		setArchive(value);
 	else if (name == PROP_COMPRESS)
 		setCompress(value);
+	else if (name == PROP_STREAMCOMPRESS)
+		setStreamCompress(value);
 	else if (name == PROP_PURGEAGE)
 		setPurgeAge(value);
 	else if (name == PROP_PURGECOUNT)
@@ -190,6 +195,8 @@ std::string FileChannel::getProperty(const std::string& name) const
 		return _archive;
 	else if (name == PROP_COMPRESS)
 		return std::string(_compress ? "true" : "false");
+	else if (name == PROP_STREAMCOMPRESS)
+		return std::string(_streamCompress ? "true" : "false");
 	else if (name == PROP_PURGEAGE)
 		return _purgeAge;
 	else if (name == PROP_PURGECOUNT)
@@ -224,6 +231,15 @@ UInt64 FileChannel::size() const
 const std::string& FileChannel::path() const
 {
 	return _path;
+}
+
+
+void FileChannel::setPath(const std::string& path)
+{
+	if (_streamCompress)
+		_path = path + ".lz4";
+	else
+		_path = path;
 }
 
 
@@ -300,7 +316,7 @@ void FileChannel::setArchive(const std::string& archive)
 	}
 	else throw InvalidArgumentException("archive", archive);
 	delete _pArchiveStrategy;
-	pStrategy->compress(_compress);
+	pStrategy->compress(_compress && !_streamCompress);
 	_pArchiveStrategy = pStrategy;
 	_archive = archive;
 }
@@ -310,7 +326,27 @@ void FileChannel::setCompress(const std::string& compress)
 {
 	_compress = icompare(compress, "true") == 0;
 	if (_pArchiveStrategy)
-		_pArchiveStrategy->compress(_compress);
+		_pArchiveStrategy->compress(_compress && !_streamCompress);
+}
+
+
+void FileChannel::setStreamCompress(const std::string& streamCompress)
+{
+	_streamCompress = icompare(streamCompress, "true") == 0;
+	
+	if (_pArchiveStrategy)
+		_pArchiveStrategy->compress(_compress && !_streamCompress);
+
+	if (_streamCompress)
+	{
+		if (!_path.ends_with(".lz4"))
+			_path.append(".lz4");
+	}
+	else
+	{
+		if (_path.ends_with(".lz4"))
+			_path.resize(_path.size() - 4);
+	}
 }
 
 
@@ -367,19 +403,105 @@ void FileChannel::unsafeOpen()
 {
 	if (!_pFile)
 	{
-		_pFile = new LogFile(_path);
+		_pFile = newLogFile();
 		if (_rotateOnOpen && _pFile->size() > 0)
 		{
 			try
 			{
-				_pFile = _pArchiveStrategy->archive(_pFile);
+				_pFile = _pArchiveStrategy->archive(_pFile, _streamCompress);
 				purge();
 			}
 			catch (...)
 			{
-				_pFile = new LogFile(_path);
+				_pFile = newLogFile();
 			}
 		}
+	}
+}
+
+
+void archiveByNumber(const std::string& basePath)
+	/// A monotonic increasing number is appended to the
+	/// log file name. The most recent archived file
+	/// always has the number zero.
+{
+	int n = -1;
+	std::string path;
+	File f;
+	do
+	{
+		path = basePath;
+		path.append(".");
+		NumberFormatter::append(path, ++n);
+		f = path;
+	}
+	while (f.exists());
+	
+	while (n >= 0)
+	{
+		std::string oldPath = basePath;
+		if (n > 0)
+		{
+			oldPath.append(".");
+			NumberFormatter::append(oldPath, n - 1);
+		}
+		std::string newPath = basePath;
+		newPath.append(".");
+		NumberFormatter::append(newPath, n);
+		f = oldPath;
+		if (f.exists())
+			f.renameTo(newPath);
+		--n;
+	}
+}
+
+void FileChannel::archiveCorrupted(const std::string& path)
+{
+	Poco::File file(path);
+	if (file.exists())
+	{
+		Poco::File::FileSize size = file.getSize();
+		if (size > 0)
+		{
+			bool err = false;
+
+			if (size < 4)
+			{
+				err = true;
+			}
+			else
+			{
+				Poco::Buffer<char> buffer(4);
+				Poco::FileInputStream istr(path);
+				istr.seekg(-4, std::ios_base::end);
+				istr.read(buffer.begin(), 4);
+
+				if (istr.gcount() != size)
+					err = true;
+
+				if (std::memcmp(buffer.begin(), "\0\0\0\0", 4) != 0)
+					err = true;
+			}
+
+			if (err)
+			{
+				file.renameTo(path + ".incomplete");
+				archiveByNumber(path + ".incomplete");
+			}
+				
+		}
+	}
+}
+
+LogFile * FileChannel::newLogFile()
+{
+	if (_streamCompress) {
+		archiveCorrupted(_path);
+		return new CompressedLogFile(_path);
+	}
+	else
+	{
+		return new LogFile(_path);
 	}
 }
 

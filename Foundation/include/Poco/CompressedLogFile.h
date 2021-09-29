@@ -3,7 +3,7 @@
 //
 // Library: Foundation
 // Package: Logging
-// Module:  LogFile
+// Module:  CompressedLogFile
 //
 // Definition of the LogFile class.
 //

@@ -3,7 +3,7 @@
 //
 // Library: Foundation
 // Package: Logging
-// Module:  LogFile
+// Module:  CompressedLogFile
 //
 // Copyright (c) 2004-2006, Applied Informatics Software Engineering GmbH.
 // and Contributors.
@@ -15,6 +15,7 @@
 #include "Poco/CompressedLogFile.h"
 
 namespace Poco {
+
 
 CompressedLogFile::CompressedLogFile(const std::string& path): 
     LogFile(path),
@@ -34,26 +35,25 @@ CompressedLogFile::CompressedLogFile(const std::string& path):
 	size_t header_size = LZ4F_compressBegin(_ctx, static_cast<void *>(_buffer.begin()), _buffer.capacity(), &_kPrefs);
 
 	if (LZ4F_isError(header_size))
-		throw IOException(LZ4F_getErrorName(ret));
+		throw IOException(LZ4F_getErrorName(header_size));
 
-	writeBinary(_buffer.begin(), header_size);
+	writeBinary(_buffer.begin(), header_size, true);
 }
 
 CompressedLogFile::~CompressedLogFile()
 {
-	/// Compression end
+    /// Compression end
     size_t end_size = LZ4F_compressEnd(_ctx, static_cast<void *>(_buffer.begin()), _buffer.capacity(), nullptr);
 
-    if (LZ4F_isError(end_size))
-		throw IOException(LZ4F_getErrorName(end_size));
+    if (!LZ4F_isError(end_size))
+		writeBinary(_buffer.begin(), end_size, true);
 	
-	writeBinary(_buffer.begin(), end_size);
     LZ4F_freeCompressionContext(_ctx);
 }
 
 void CompressedLogFile::write(const std::string& text, bool flush)
 {
-	size_t in_capacity = text.size();
+    size_t in_capacity = text.size();
     const char * in_data = text.data();
 
 	while (in_capacity > 0)
