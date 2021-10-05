@@ -39,8 +39,8 @@
 	#endif
 #endif
 #include <algorithm>
+#include <atomic>
 #include <map>
-
 
 namespace Poco {
 
