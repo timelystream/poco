@@ -233,7 +233,6 @@ public:
 
 protected:
 	~FileChannel();
-	void setPath(const std::string& path);
 	void setRotation(const std::string& rotation);
 	void setArchive(const std::string& archive);
 	void setCompress(const std::string& compress);

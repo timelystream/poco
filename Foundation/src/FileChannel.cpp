@@ -161,7 +161,7 @@ void FileChannel::setProperty(const std::string& name, const std::string& value)
 			setArchive(_archive);
 	}
 	else if (name == PROP_PATH)
-		setPath(value);
+		_path = value;
 	else if (name == PROP_ROTATION)
 		setRotation(value);
 	else if (name == PROP_ARCHIVE)
@@ -231,15 +231,6 @@ UInt64 FileChannel::size() const
 const std::string& FileChannel::path() const
 {
 	return _path;
-}
-
-
-void FileChannel::setPath(const std::string& path)
-{
-	if (_streamCompress)
-		_path = path + ".lz4";
-	else
-		_path = path;
 }
 
 
@@ -333,20 +324,9 @@ void FileChannel::setCompress(const std::string& compress)
 void FileChannel::setStreamCompress(const std::string& streamCompress)
 {
 	_streamCompress = icompare(streamCompress, "true") == 0;
-	
+
 	if (_pArchiveStrategy)
 		_pArchiveStrategy->compress(_compress && !_streamCompress);
-
-	if (_streamCompress)
-	{
-		if (!_path.ends_with(".lz4"))
-			_path.append(".lz4");
-	}
-	else
-	{
-		if (_path.ends_with(".lz4"))
-			_path.resize(_path.size() - 4);
-	}
 }
 
 
@@ -425,29 +405,42 @@ void archiveByNumber(const std::string& basePath)
 	/// log file name. The most recent archived file
 	/// always has the number zero.
 {
+	std::string base = basePath;
+	std::string ext = "";
+
+	if (base.ends_with(".lz4"))
+	{
+		base.resize(base.size() - 4);
+		ext = ".lz4";
+	}
+	
 	int n = -1;
 	std::string path;
 	File f;
 	do
 	{
-		path = basePath;
+		path = base;
 		path.append(".");
 		NumberFormatter::append(path, ++n);
+		path.append(ext);
 		f = path;
 	}
 	while (f.exists());
 	
 	while (n >= 0)
 	{
-		std::string oldPath = basePath;
+		std::string oldPath = base;
 		if (n > 0)
 		{
 			oldPath.append(".");
 			NumberFormatter::append(oldPath, n - 1);
 		}
-		std::string newPath = basePath;
+		oldPath.append(ext);
+
+		std::string newPath = base;
 		newPath.append(".");
 		NumberFormatter::append(newPath, n);
+		newPath.append(ext);
 		f = oldPath;
 		if (f.exists())
 			f.renameTo(newPath);
@@ -455,9 +448,10 @@ void archiveByNumber(const std::string& basePath)
 	}
 }
 
+
 void FileChannel::archiveCorrupted(const std::string& path)
 {
-	Poco::File file(path);
+	Poco::File file(path + ".lz4");
 	if (file.exists())
 	{
 		Poco::File::FileSize size = file.getSize();
@@ -472,7 +466,7 @@ void FileChannel::archiveCorrupted(const std::string& path)
 			else
 			{
 				Poco::Buffer<char> buffer(4);
-				Poco::FileInputStream istr(path);
+				Poco::FileInputStream istr(path + ".lz4");
 				istr.seekg(-4, std::ios_base::end);
 				istr.read(buffer.begin(), 4);
 
@@ -485,8 +479,8 @@ void FileChannel::archiveCorrupted(const std::string& path)
 
 			if (err)
 			{
-				file.renameTo(path + ".incomplete");
-				archiveByNumber(path + ".incomplete");
+				file.renameTo(path + ".incomplete.lz4");
+				archiveByNumber(path + ".incomplete.lz4");
 			}
 				
 		}

@@ -18,7 +18,7 @@ namespace Poco {
 
 
 CompressedLogFile::CompressedLogFile(const std::string& path): 
-    LogFile(path),
+    LogFile(path + ".lz4"),
     _buffer(0)
 {
     memset(&_kPrefs, 0, sizeof(_kPrefs));
