@@ -33,22 +33,22 @@ class Foundation_API CompressedLogFile: public LogFile
 {
 public:
 
-    CompressedLogFile(const std::string& path);
-        /// Allocates buffer and initializes compession state.
+	CompressedLogFile(const std::string& path);
+		/// Allocates buffer and initializes compession state.
 
-    ~CompressedLogFile();
-        /// Destoys CompressedLogFile
+	~CompressedLogFile();
+		/// Destoys CompressedLogFile
 
-    void write(const std::string& text, bool flush = true);
+	void write(const std::string& text, bool flush = true);
 		/// Writes the given text to the compressed log file.
 		/// If flush is true, the text will be immediately
 		/// flushed to the file.
 
 private:
-    Poco::Buffer<char> _buffer;
-	
-    LZ4F_preferences_t _kPrefs;
-    LZ4F_compressionContext_t _ctx;
+	Poco::Buffer<char> _buffer;
+
+	LZ4F_preferences_t _kPrefs;
+	LZ4F_compressionContext_t _ctx;
 };
 
 

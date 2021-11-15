@@ -33,7 +33,7 @@ class ArchiveCompressor;
 
 
 class Foundation_API ArchiveStrategy
-	/// The ArchiveStrategy is used by FileChannel 
+	/// The ArchiveStrategy is used by FileChannel
 	/// to rename a rotated log file for archiving.
 	///
 	/// Archived files can be automatically compressed,
@@ -47,10 +47,10 @@ public:
 		/// Renames the given log file for archiving
 		/// and creates and returns a new log file.
 		/// The given LogFile object is deleted.
-		/// Returns CompressedLogFile if compressed flag is set. 
+		/// Returns CompressedLogFile if streamCompress flag is set.
 
 	void compress(bool flag = true);
-		/// Enables or disables compression of archived files.	
+		/// Enables or disables compression of archived files.
 
 protected:
 	void moveFile(const std::string& oldName, const std::string& newName);
@@ -73,7 +73,7 @@ class Foundation_API ArchiveByNumberStrategy: public ArchiveStrategy
 public:
 	ArchiveByNumberStrategy();
 	~ArchiveByNumberStrategy();
-	LogFile* archive(LogFile* pFile, bool compressed = false);
+	LogFile* archive(LogFile* pFile, bool streamCompress = false);
 };
 
 

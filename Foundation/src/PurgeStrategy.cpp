@@ -48,7 +48,8 @@ void PurgeStrategy::list(const std::string& path, std::vector<File>& files)
 	DirectoryIterator end;
 	while (it != end)
 	{
-		if (it.name().compare(0, baseName.size(), baseName) == 0)
+		if (it.name().compare(0, baseName.size(), baseName) == 0
+			&& it.name().find(".incomplete") == std::string::npos)
 		{
 			files.push_back(*it);
 		}
