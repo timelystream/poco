@@ -41,11 +41,16 @@ public:
 	LogFile(const std::string& path);
 		/// Creates the LogFile.
 
-	~LogFile();
+	virtual ~LogFile();
 		/// Destroys the LogFile.
 
-	void write(const std::string& text, bool flush = true);
+	virtual void write(const std::string& text, bool flush = true);
 		/// Writes the given text to the log file.
+		/// If flush is true, the text will be immediately
+		/// flushed to the file.
+
+	void writeBinary(const char * data, size_t size, bool flush = true);
+		/// Writes the given bytes to the log file.
 		/// If flush is true, the text will be immediately
 		/// flushed to the file.
 
@@ -66,6 +71,12 @@ public:
 inline void LogFile::write(const std::string& text, bool flush)
 {
 	writeImpl(text, flush);
+}
+
+
+inline void LogFile::writeBinary(const char * data, size_t data_size, bool flush)
+{
+	writeBinaryImpl(data, data_size, flush);
 }
 
 

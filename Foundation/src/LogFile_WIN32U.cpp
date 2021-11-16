@@ -56,6 +56,20 @@ void LogFileImpl::writeImpl(const std::string& text, bool flush)
 	}
 }
 
+void LogFileImpl::writeBinaryImpl(const char * data, size_t size, bool flush)
+{
+	if (INVALID_HANDLE_VALUE == _hFile)	createFile();
+
+	DWORD bytesWritten;
+	BOOL res = WriteFile(_hFile, data, (DWORD) size, &bytesWritten, NULL);
+	if (!res) throw WriteFileException(_path);
+	if (flush)
+	{
+		res = FlushFileBuffers(_hFile);
+		if (!res) throw WriteFileException(_path);
+	}
+}
+
 
 UInt64 LogFileImpl::sizeImpl() const
 {
