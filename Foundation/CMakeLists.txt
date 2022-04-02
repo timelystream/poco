@@ -40,6 +40,9 @@ POCO_MESSAGES( SRCS Logging src/pocomsg.mc)
 option(POCO_UNBUNDLED_PCRE
   "Set to OFF|ON (default is OFF) to control linking pcre as external" ${POCO_UNBUNDLED})
 
+find_library(LZ4_LIBRARY NAMES lz4)
+set(SYSLIBS ${SYSLIBS} ${LZ4_LIBRARY})
+
 if (POCO_UNBUNDLED_PCRE)
 	find_package(PCRE REQUIRED)
 	set(SYSLIBS ${SYSLIBS} ${PCRE_LIBRARIES})

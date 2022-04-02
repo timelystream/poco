@@ -1,5 +1,10 @@
 name: poco-ci
-on: [push]
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+
 jobs:
   linux-gcc-cmake:
     runs-on: ubuntu-20.04
@@ -14,6 +19,7 @@ jobs:
             unixodbc-dev
             libmysqlclient-dev
             redis-server
+            liblz4-dev
       - run:
           cmake -H.
           -Bcmake-build
@@ -54,6 +60,7 @@ jobs:
 ##            unixodbc-dev
 ##            libmysqlclient-dev
 ##            redis-server
+##            liblz4-dev
 ##      - run:
 ##          cmake -H.
 ##          -DCMAKE_PREFIX_PATH="/usr/include/android;/usr/lib/x86_64-linux-gnu/android"
