@@ -470,7 +470,11 @@ bool SocketImpl::pollImpl(Poco::Timespan& remainingTime, int mode)
 #else
 		rc = ::poll(&pollBuf, 1, remainingTime.totalMilliseconds());
 #endif
-		if (rc < 0 && lastError() == POCO_EINTR)
+		/// Decrease timeout in case of retriable error.
+		///
+		/// But do this only if the timeout is positive,
+		/// since negative timeout means an infinite timeout.
+		if (rc < 0 && lastError() == POCO_EINTR && remainingTime > 0)
 		{
 			Poco::Timestamp end;
 			Poco::Timespan waited = end - start;
