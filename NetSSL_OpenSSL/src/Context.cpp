@@ -116,6 +116,66 @@ Context::~Context()
 }
 
 
+static int poco_ssl_probe_and_set_default_ca_location(SSL_CTX *ctx)
+{
+	/* The probe paths are based on:
+		* https://www.happyassassin.net/posts/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
+		* Golang's crypto probing paths:
+		*   https://golang.org/search?q=certFiles   and certDirectories
+		*/
+	static const char *paths[] = {
+		"/etc/pki/tls/certs/ca-bundle.crt",
+		"/etc/ssl/certs/ca-bundle.crt",
+		"/etc/pki/tls/certs/ca-bundle.trust.crt",
+		"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+
+		"/etc/ssl/ca-bundle.pem",
+		"/etc/pki/tls/cacert.pem",
+		"/etc/ssl/cert.pem",
+		"/etc/ssl/cacert.pem",
+
+		"/etc/certs/ca-certificates.crt",
+		"/etc/ssl/certs/ca-certificates.crt",
+
+		"/etc/ssl/certs",
+
+		"/usr/local/etc/ssl/cert.pem",
+		"/usr/local/etc/ssl/cacert.pem",
+
+		"/usr/local/etc/ssl/certs/cert.pem",
+		"/usr/local/etc/ssl/certs/cacert.pem",
+
+		/* BSD */
+		"/usr/local/share/certs/ca-root-nss.crt",
+		"/etc/openssl/certs/ca-certificates.crt",
+#ifdef __APPLE__
+		"/private/etc/ssl/cert.pem",
+		"/private/etc/ssl/certs",
+		"/usr/local/etc/openssl@1.1/cert.pem",
+		"/usr/local/etc/openssl@1.0/cert.pem",
+		"/usr/local/etc/openssl/certs",
+		"/System/Library/OpenSSL",
+#endif
+#ifdef _AIX
+		"/var/ssl/certs/ca-bundle.crt",
+#endif
+	};
+
+	for (const char * path : paths)
+	{
+		Poco::File file(path);
+		if (!file.exists())
+			continue;
+		
+		bool is_dir = file.isDirectory();
+		if (SSL_CTX_load_verify_locations(ctx, is_dir ? NULL : path, is_dir ? path : NULL))
+			return 1;
+	}
+
+	return 0;
+}
+
+
 void Context::init(const Params& params)
 {
 	Poco::Crypto::OpenSSLInitializer::initialize();
@@ -142,6 +202,9 @@ void Context::init(const Params& params)
 		if (params.loadDefaultCAs)
 		{
 			errCode = SSL_CTX_set_default_verify_paths(_pSSLContext);
+			if (errCode != 1)
+				errCode = poco_ssl_probe_and_set_default_ca_location(_pSSLContext);
+
 			if (errCode != 1)
 			{
 				std::string msg = Utility::getLastError();
