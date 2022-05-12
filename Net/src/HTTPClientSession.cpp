@@ -26,6 +26,7 @@
 #include "Poco/CountingStream.h"
 #include "Poco/RegularExpression.h"
 #include <sstream>
+#include <iostream>
 
 
 using Poco::NumberFormatter;
@@ -170,7 +171,7 @@ void HTTPClientSession::setProxyProtocol(const std::string& protocol)
 {
 	if (protocol != "http" && protocol != "https")
 		throw IllegalStateException("Protocol must be either http or https");
-	
+
 	if (!connected())
 		_proxyConfig.protocol = protocol;
 	else
@@ -413,7 +414,7 @@ void HTTPClientSession::reconnect()
 {
 	if (_proxyConfig.host.empty() || bypassProxy())
 	{
-		SocketAddress addr(_host, _port);
+		SocketAddress addr(_resolved_host.empty() ? _host : _resolved_host, _port);
 		connect(addr);
 	}
 	else
