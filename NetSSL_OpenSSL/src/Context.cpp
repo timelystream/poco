@@ -116,7 +116,7 @@ Context::~Context()
 }
 
 
-static int poco_ssl_probe_and_set_default_ca_location(SSL_CTX *ctx)
+static int poco_ssl_probe_and_set_default_ca_location(SSL_CTX *ctx, Context::CAPaths &caPaths)
 {
 	/* The probe paths are based on:
 		* https://www.happyassassin.net/posts/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
@@ -169,7 +169,13 @@ static int poco_ssl_probe_and_set_default_ca_location(SSL_CTX *ctx)
 		
 		bool is_dir = file.isDirectory();
 		if (SSL_CTX_load_verify_locations(ctx, is_dir ? NULL : path, is_dir ? path : NULL))
+		{
+			if (is_dir)
+				caPaths.caDefaultDir = path;
+			else
+				caPaths.caDefaultFile = path;
 			return 1;
+		}
 	}
 
 	return 0;
@@ -197,13 +203,28 @@ void Context::init(const Params& params)
 				std::string msg = Utility::getLastError();
 				throw SSLContextException(std::string("Cannot load CA file/directory at ") + params.caLocation, msg);
 			}
+			_caPaths.caLocation = params.caLocation;
 		}
 
 		if (params.loadDefaultCAs)
 		{
 			errCode = SSL_CTX_set_default_verify_paths(_pSSLContext);
-			if (errCode != 1)
-				errCode = poco_ssl_probe_and_set_default_ca_location(_pSSLContext);
+			if (errCode == 1)
+			{
+				const char * dir = getenv(X509_get_default_cert_dir_env());
+				if (!dir)
+					dir = X509_get_default_cert_dir();
+				if (dir)
+					_caPaths.caDefaultDir = dir;
+
+				const char * file = getenv(X509_get_default_cert_file_env());
+				if (!file)
+					file = X509_get_default_cert_file();
+				if (file)
+					_caPaths.caDefaultFile = file;
+			}
+			else
+				errCode = poco_ssl_probe_and_set_default_ca_location(_pSSLContext, _caPaths);
 
 			if (errCode != 1)
 			{
@@ -441,6 +462,11 @@ void Context::preferServerCiphers()
 #if defined(SSL_OP_CIPHER_SERVER_PREFERENCE)
 	SSL_CTX_set_options(_pSSLContext, SSL_OP_CIPHER_SERVER_PREFERENCE);
 #endif
+}
+
+const Context::CAPaths &Context::getCAPaths()
+{
+	return _caPaths;
 }
 
 
