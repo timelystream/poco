@@ -103,6 +103,13 @@ public:
 		PROTO_TLSV1_2 = 0x10
 	};
 
+	struct NetSSL_API CAPaths
+	{
+		std::string caDefaultDir;
+		std::string caDefaultFile;
+		std::string caLocation;
+	};
+
 	struct NetSSL_API Params
 	{
 		Params();
@@ -342,6 +349,8 @@ public:
 		/// preferences. When called, the SSL/TLS server will choose following its own
 		/// preferences.
 
+	const CAPaths &getCAPaths();
+
 private:
 	void init(const Params& params);
 		/// Initializes the Context with the given parameters.
@@ -359,6 +368,7 @@ private:
 	Usage _usage;
 	VerificationMode _mode;
 	SSL_CTX* _pSSLContext;
+	CAPaths _caPaths;
 	bool _extendedCertificateVerification;
 };
 
