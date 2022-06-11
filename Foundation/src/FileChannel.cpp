@@ -24,7 +24,7 @@
 #include "Poco/String.h"
 #include "Poco/Exception.h"
 #include "Poco/Ascii.h"
-
+#include "../include/Poco/string_predicate.hpp"
 
 namespace Poco {
 
@@ -408,7 +408,7 @@ void archiveByNumber(const std::string& basePath)
 	std::string base = basePath;
 	std::string ext = "";
 
-	if (base.ends_with(".lz4"))
+	if (std::ends_with(base, std::string(".lz4")))
 	{
 		base.resize(base.size() - 4);
 		ext = ".lz4";

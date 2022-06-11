@@ -24,7 +24,7 @@
 #include "Poco/File.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/NumberFormatter.h"
-
+#include "string_predicate.hpp"
 
 namespace Poco {
 
@@ -99,7 +99,7 @@ public:
 		std::string base = pFile->path();
 		std::string ext = "";
 
-		if (base.ends_with(".lz4"))
+		if (std::ends_with(base, std::string(".lz4")))
 		{
 			base.resize(base.size() - 4);
 			ext = ".lz4";
@@ -129,7 +129,7 @@ private:
 		std::string base = basePath;
 		std::string ext = "";
 
-		if (base.ends_with(".lz4"))
+		if (std::ends_with(base, std::string(".lz4")))
 		{
 			base.resize(base.size() - 4);
 			ext = ".lz4";

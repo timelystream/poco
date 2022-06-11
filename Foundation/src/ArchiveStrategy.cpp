@@ -166,7 +166,7 @@ LogFile* ArchiveByNumberStrategy::archive(LogFile* pFile, bool streamCompress)
 	std::string base = pFile->path();
 	std::string ext = "";
 
-	if (base.ends_with(".lz4"))
+	if (std::ends_with(base, std::string(".lz4")))
 	{
 		base.resize(base.size() - 4);
 		ext = ".lz4";
